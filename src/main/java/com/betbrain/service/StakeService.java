@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
  */
 public class StakeService {
 
-
     private static final Logger log = Logger.getLogger("StakeService");
     // 分片数量,按照betId,暂不清楚betId的量级，后续可以配置成参数动态调整；
     private static final int SHARD_COUNT = 256;
