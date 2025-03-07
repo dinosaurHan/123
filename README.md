@@ -28,10 +28,10 @@ src/main/java/com/betbrain/
 ├── SessionService.java
 └── StakeService.java
 
-Getting Started
-Prerequisites
-JDK 11+
-Maven 3.6+
+##Getting Started
+###Prerequisites
+-JDK 11+
+-Maven 3.6+
 Build
 mvn clean package
 Run
