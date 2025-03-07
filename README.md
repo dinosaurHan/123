@@ -38,7 +38,7 @@ mvn clean package
 ```
 ### Run
 ```text
-java -jar target/betting-server.jar
+java -jar target/Betting-server-1.0.jar
 ```
 ### Verify
 Test basic functionality:
