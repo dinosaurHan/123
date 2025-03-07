@@ -4,7 +4,7 @@
 A high-concurrency betting platform server built with Java native HTTP Server, providing stake recording, session management, and real-time leaderboard features.
 
 **Technology Stack**
-- JDK Version: **11+**
+- JDK Version: **1.8+**
 - Web Framework: `com.sun.net.httpserver` (JDK built-in)
 - Concurrency Model: `ConcurrentHashMap`, `ThreadPoolExecutor`
 - Data Structures: `ConcurrentSkipListMap`
