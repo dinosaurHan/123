@@ -32,19 +32,19 @@ public class StakeService {
 
     /**
      * Records a new stake for a betting event
-     * @param eventId ID of the betting event
+     * @param betId ID of the betting event
      * @param customerId ID of the customer
      * @param amount Stake amount (must be positive)
      */
-    public void recordStake(int eventId, int customerId, int amount) {
-        if (eventId < 0 || customerId < 0 || amount <= 0) {
-            logger.warning("Invalid stake: event=" + eventId
+    public void recordStake(int betId, int customerId, int amount) {
+        if (betId < 0 || customerId < 0 || amount <= 0) {
+            logger.warning("Invalid stake: betId=" + betId
                     + " customer=" + customerId
                     + " amount=" + amount);
             throw new IllegalArgumentException();
         }
 
-        betEventData.compute(eventId, (id, event) -> {
+        betEventData.compute(betId, (id, event) -> {
             if (event == null) event = new BetEvent();
             event.updateStake(customerId, amount);
             return event;
@@ -53,13 +53,13 @@ public class StakeService {
 
     /**
      * Gets formatted top 20 stakes for a betting event
-     * @param eventId Target event ID
+     * @param betId Target event ID
      * @return Comma-separated "customerId=amount" pairs,
      *         or message if no stakes exist
      */
-    public String getTop20Stakes(int eventId) {
-        BetEvent event = betEventData.get(eventId);
-        if (event == null) return "No stakes for event: " + eventId;
+    public String getTop20Stakes(int betId) {
+        BetEvent event = betEventData.get(betId);
+        if (event == null) return "No stakes for bet ID: " + betId;
 
         List<Map.Entry<Integer, Integer>> entries = event.getTop20();
         return formatEntries(entries);

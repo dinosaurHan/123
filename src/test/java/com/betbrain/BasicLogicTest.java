@@ -72,7 +72,7 @@ public class BasicLogicTest {
     public void testEmptyHighStakes() throws Exception {
         int nonExistBetId = 99999;
         String response = getHighStakes(nonExistBetId);
-        assertEquals("No stakes for event: " + nonExistBetId, response);
+        assertEquals("No stakes for bet ID: " + nonExistBetId, response);
     }
 
     @Test
