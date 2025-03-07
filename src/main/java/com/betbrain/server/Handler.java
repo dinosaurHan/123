@@ -2,16 +2,18 @@ package com.betbrain.server;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-
 import java.io.IOException;
 
 /**
- * 处理类接口，方便路由，解决HttpServer.createContext只能前缀匹配问题
- *
- * @Date 2025.03.03
- * @Author Paul
+ * Enhanced HTTP handler interface for flexible routing solutions.
  */
 public interface Handler extends HttpHandler {
 
+    /**
+     * Processes an HTTP exchange with enhanced routing capabilities
+     * @param exchange The HTTP exchange containing request/response objects
+     * @throws IOException If an I/O error occurs during processing
+     */
+    @Override
     void handle(HttpExchange exchange) throws IOException;
 }

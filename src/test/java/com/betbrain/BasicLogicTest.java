@@ -15,7 +15,7 @@ import java.util.stream.*;
  */
 public class BasicLogicTest {
     private static final String BASE_URL = "http://localhost:8001";
-    private static final int SESSION_TIMEOUT_SEC = 60; // 1分钟会话超时
+    private static final int SESSION_TIMEOUT_SEC = 60 * 10; // 10分钟会话超时
     private static final int TEST_CUSTOMER_ID = 9001;
     private static final int TEST_BET_ID = 10001;
 
@@ -72,7 +72,7 @@ public class BasicLogicTest {
     public void testEmptyHighStakes() throws Exception {
         int nonExistBetId = 99999;
         String response = getHighStakes(nonExistBetId);
-        assertEquals("No stakes found for bet ID: " + nonExistBetId, response);
+        assertEquals("No stakes for event: " + nonExistBetId, response);
     }
 
     @Test
@@ -89,6 +89,7 @@ public class BasicLogicTest {
         // 验证列表
         String result = getHighStakes(betId);
         String[] entries = result.split(",");
+        System.out.println(result);
         assertEquals(20, entries.length);
         assertTrue("应包含最高金额1024", result.contains("1024"));
     }

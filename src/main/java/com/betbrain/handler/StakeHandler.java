@@ -3,87 +3,100 @@ package com.betbrain.handler;
 import com.betbrain.server.Handler;
 import com.betbrain.service.SessionService;
 import com.betbrain.service.StakeService;
+import com.betbrain.util.HttpUtil;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * 投注处理服务类
- *
- * @Date 2025.03.03
- * @Author Paul
+ * Handles stake submission requests and validation
  */
 public class StakeHandler implements Handler {
 
-    private static final Logger log = Logger.getLogger("StakeHandler");
+    private static final Logger logger = Logger.getLogger(StakeHandler.class.getName());
+
     private final SessionService sessionService = SessionService.getInstance();
-    private final StakeService stakeService = new StakeService();
+    private final StakeService stakeService = StakeService.getInstance();
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        // 记录请求开始
-        String path = exchange.getRequestURI().getPath();
-        String[] parts = path.split("/");
-        if (parts.length < 3) {
-            log.warning("Invalid path: " + path);
-            exchange.sendResponseHeaders(400, -1); // Unauthorized
-            return;
-        }
-        // 解析投注 ID
-        int betId;
         try {
-            betId = Integer.parseInt(parts[1]);
+            // Validate request structure
+            String path = exchange.getRequestURI().getPath();
+            int betId = parseBetIdFromPath(path);
+            String sessionKey = extractSessionKey(exchange);
+
+            // Authenticate session
+            int customerId = validateSession(sessionKey);
+
+            // Process stake amount
+            int stakeAmount = readStakeAmount(exchange);
+
+            // Record the stake
+            stakeService.recordStake(betId, customerId, stakeAmount);
+
+            HttpUtil.sendResponse(exchange,HttpUtil.HTTP_OK,null);
+            logger.log(Level.INFO, "Stake recorded - BetID: {0}, Customer: {1}, Amount: {2}",
+                    new Object[]{betId, customerId, stakeAmount});
+        } catch (IllegalArgumentException e) {
+            HttpUtil.sendResponse(exchange, HttpUtil.BAD_REQUEST, "Invalid request: " + e.getMessage());
+        } catch (SecurityException e) {
+            HttpUtil.sendResponse(exchange, HttpUtil.UNAUTHORIZED, "Authentication failed");
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Stake processing error", e);
+            HttpUtil.sendResponse(exchange, HttpUtil.INTERNAL_SERVER_ERROR, "Internal server error");
+        }
+    }
+
+    private int parseBetIdFromPath(String path) {
+        String[] segments = path.split("/");
+        if (segments.length < 3) {
+            throw new IllegalArgumentException("Invalid path format");
+        }
+
+        try {
+            return Integer.parseUnsignedInt(segments[1]);
         } catch (NumberFormatException e) {
-            log.warning("Invalid bet ID: " + parts[1]);
-            exchange.sendResponseHeaders(400, -1); // Unauthorized
-            return;
+            throw new IllegalArgumentException("Invalid bet ID format");
         }
+    }
 
-        // 提取 sessionKey
+    private String extractSessionKey(HttpExchange exchange) {
         String query = exchange.getRequestURI().getQuery();
-        String sessionKey = query.substring("sessionkey=".length());
-        // 验证会话
-        if (!sessionService.isValidSession(sessionKey)) {
-            log.warning("Invalid session key: " + sessionKey);
-            exchange.sendResponseHeaders(401, -1); // Unauthorized
-            return;
+        if (query == null || !query.startsWith("sessionkey=")) {
+            throw new IllegalArgumentException("Missing session key");
         }
+        return query.substring("sessionkey=".length());
+    }
 
-        // 读取请求体
-        int stakeAmount;
-        try (InputStream is = exchange.getRequestBody();
-             ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+    private int validateSession(String sessionKey) {
+        int customerId = sessionService.getCustomerIdBySessionKey(sessionKey);
+        if (customerId == -1 || !sessionService.isValidSession(sessionKey)) {
+            logger.warning("Invalid session attempt: " + sessionKey);
+            throw new SecurityException("Invalid session");
+        }
+        return customerId;
+    }
+
+    private int readStakeAmount(HttpExchange exchange) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        try (InputStream is = exchange.getRequestBody()) {
             byte[] data = new byte[1024];
             int bytesRead;
             while ((bytesRead = is.read(data, 0, data.length)) != -1) {
                 buffer.write(data, 0, bytesRead);
             }
-            buffer.flush();
-            stakeAmount = Integer.parseInt(buffer.toString("UTF-8"));
+
+            String amountStr = buffer.toString("UTF-8").trim();
+            return Integer.parseUnsignedInt(amountStr);
         } catch (NumberFormatException e) {
-            log.warning("Invalid stake amount in request body");
-            exchange.sendResponseHeaders(400, -1); // Bad Request
-            return;
+            throw new IllegalArgumentException("Invalid stake amount format");
         }
-
-        // 验证会话并获取客户 ID
-        int customerId = sessionService.getCustomerIdBySessionKey(sessionKey);
-        if (customerId == -1) {
-            log.warning("Invalid session key: " + sessionKey);
-            exchange.sendResponseHeaders(401, -1);
-            return;
-        }
-
-        // 存储赌注
-        try{
-            stakeService.addStake(betId, customerId, stakeAmount);
-        }catch (Exception e){
-            exchange.sendResponseHeaders(400, -1);
-        }
-        //log.info("===>Stake added: betId=" + betId + ", customerId=" + customerId + ", amount=" + stakeAmount);
-        exchange.sendResponseHeaders(200, -1);
     }
+
+
 }
