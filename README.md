@@ -25,42 +25,41 @@ src/main/java/com/betbrain/
 │   ├── Handler.java
 │   └── Router.java
 └── service/               # Business Services
-├── SessionService.java
-└── StakeService.java
-
-##Getting Started
-###Prerequisites
--JDK 11+
--Maven 3.6+
-Build
+│   ├──SessionService.java
+│   ├──StakeService.java
+```
+## Getting Started
+### Prerequisites
+- JDK 1.8+
+- Maven 3.6+
+### Build
+```text
 mvn clean package
-Run
+```
+### Run
+```text
 java -jar target/betting-server.jar
-Verify
+```
+### Verify
 Test basic functionality:
+```text
+curl http://localhost:8001/1234/session
+```
+Expected response
+```text
+httpstatuscode ： 200
+httpresponsebody ：sessionKey (VF3VQOU etc.)
+```
+### API Documentation
+| Endpoint               | Method | Parameters               | Status Codes           |
+|------------------------|--------|--------------------------|------------------------|
+| `/{customerId}/sessions/`       | GET    | `id: int`                | 200 OK,response body :`session key`, 400 Bad Request|
+| `/{betId}/stake?sessionkey={sessinoKey}`      | POST   | `betid:int ；sessionkey: string ；body: stake amount:int`     | 200 OK, 401 Unauthorized|
+| `/{betId}/highstakes`      | POST/GET   |      | 200 OK ,response body :`stake list 9002=1500,9001=800`|
 
-curl http://localhost:8080/sessions/1001
-API Documentation
-Endpoints
-Endpoint	Method	Parameters	Success Response
-/sessions/{customerId}	GET	-	200 OK (session key)
-/stakes/{betId}	POST	sessionkey, stake value	200 OK
-/highstakes/{betId}	GET	-	200 OK (CSV data)
-Example Requests
-# Create session
-curl -X GET http://localhost:8080/sessions/1001
+#### Example Requests
+- Create session
+curl -X GET [http://localhost:8001/666/session](http://localhost:8001/666/session)
 
-# Submit stake (amount=5000)
-curl -X POST -d "5000" http://localhost:8080/stakes/2001?sessionkey=abc123
-
-# Get top stakes
-curl http://localhost:8080/highstakes/2001
-Response Examples
-Success (Stake Submission):
-
-HTTP/1.1 200 OK
-Error (Invalid Session):
-
-
-HTTP/1.1 401 Unauthorized
-Authentication failed
+- Submit stake (amount=5000)
+curl -X POST -d "5000" [http://localhost:8001/1234/stake?sessionkey=abc123](http://localhost:8001/1234/stake?sessionkey=abc123)
