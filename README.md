@@ -45,7 +45,7 @@ Test basic functionality:
 ```text
 curl http://localhost:8001/1234/session
 ```
-Expected response
+Expected response 
 ```text
 httpstatuscode ： 200
 httpresponsebody ：sessionKey (VF3VQOU etc.)
