@@ -3,6 +3,7 @@ package com.betbrain.handler;
 import com.betbrain.server.Handler;
 import com.betbrain.service.StakeService;
 import com.betbrain.util.HttpUtil;
+import com.betbrain.util.ParamUtil;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
@@ -24,7 +25,7 @@ public class HighStakesHandler implements Handler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         try {
-            int betId = parseBetIdFromPath(exchange);
+            int betId = ParamUtil.parseBetIdFromPath(exchange);
             String response = stakeService.getTop20Stakes(betId);
             HttpUtil.sendResponse(exchange, HttpUtil.HTTP_OK, response);
             logger.info(() -> "Successfully returned top stakes for bet ID: " + betId);
@@ -34,26 +35,6 @@ public class HighStakesHandler implements Handler {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error processing request", e);
             HttpUtil.sendResponse(exchange, HttpUtil.INTERNAL_SERVER_ERROR, "Internal server error");
-        }
-    }
-
-    /**
-     * Extracts bet ID from request path
-     * @param exchange HTTP exchange object
-     * @return Validated bet ID
-     * @throws IllegalArgumentException for invalid ID formats
-     */
-    private int parseBetIdFromPath(HttpExchange exchange) throws IllegalArgumentException {
-        String[] pathSegments = exchange.getRequestURI().getPath().split("/");
-
-        if (pathSegments.length < 2) {
-            throw new IllegalArgumentException("Missing bet ID in path");
-        }
-
-        try {
-            return Integer.parseUnsignedInt(pathSegments[1]);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid bet ID format", e);
         }
     }
 

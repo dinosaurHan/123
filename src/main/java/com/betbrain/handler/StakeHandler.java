@@ -4,6 +4,7 @@ import com.betbrain.server.Handler;
 import com.betbrain.service.SessionService;
 import com.betbrain.service.StakeService;
 import com.betbrain.util.HttpUtil;
+import com.betbrain.util.ParamUtil;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.ByteArrayOutputStream;
@@ -27,14 +28,14 @@ public class StakeHandler implements Handler {
         try {
             // Validate request structure
             String path = exchange.getRequestURI().getPath();
-            int betId = parseBetIdFromPath(path);
-            String sessionKey = extractSessionKey(exchange);
+            int betId = ParamUtil.parseBetIdFromPath(path);
+            String sessionKey = ParamUtil.extractSessionKey(exchange);
 
             // Authenticate session
             int customerId = validateSession(sessionKey);
 
             // Process stake amount
-            int stakeAmount = readStakeAmount(exchange);
+            int stakeAmount = ParamUtil.readStakeAmount(exchange);
 
             // Record the stake
             stakeService.recordStake(betId, customerId, stakeAmount);
@@ -52,27 +53,6 @@ public class StakeHandler implements Handler {
         }
     }
 
-    private int parseBetIdFromPath(String path) {
-        String[] segments = path.split("/");
-        if (segments.length < 3) {
-            throw new IllegalArgumentException("Invalid path format");
-        }
-
-        try {
-            return Integer.parseUnsignedInt(segments[1]);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid bet ID format");
-        }
-    }
-
-    private String extractSessionKey(HttpExchange exchange) {
-        String query = exchange.getRequestURI().getQuery();
-        if (query == null || !query.startsWith("sessionkey=")) {
-            throw new IllegalArgumentException("Missing session key");
-        }
-        return query.substring("sessionkey=".length());
-    }
-
     private int validateSession(String sessionKey) {
         int customerId = sessionService.getCustomerIdBySessionKey(sessionKey);
         if (customerId == -1 || !sessionService.isValidSession(sessionKey)) {
@@ -82,21 +62,7 @@ public class StakeHandler implements Handler {
         return customerId;
     }
 
-    private int readStakeAmount(HttpExchange exchange) throws IOException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        try (InputStream is = exchange.getRequestBody()) {
-            byte[] data = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = is.read(data, 0, data.length)) != -1) {
-                buffer.write(data, 0, bytesRead);
-            }
 
-            String amountStr = buffer.toString("UTF-8").trim();
-            return Integer.parseUnsignedInt(amountStr);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid stake amount format");
-        }
-    }
 
 
 }
