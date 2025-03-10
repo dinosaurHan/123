@@ -80,7 +80,7 @@ public class SessionService {
     /**
      * Removes expired sessions from active session store
      */
-    void cleanExpiredSessions() {
+    public void cleanExpiredSessions() {
         final long currentTime = System.currentTimeMillis();
         activeSessions.entrySet().removeIf(entry -> {
             if (isExpired(entry.getValue())) {
