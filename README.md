@@ -53,7 +53,7 @@ httpresponsebody ：sessionKey (VF3VQOU etc.)
 ### API Documentation
 | Endpoint               | Method | Parameters               | Status Codes           |
 |------------------------|--------|--------------------------|------------------------|
-| `/{customerId}/sessions/`       | GET    | `id: int`                | 200 OK,response body :`session key`, 400 Bad Request|
+| `/{customerId}/session`       | GET    | `id: int`                | 200 OK,response body :`session key`, 400 Bad Request|
 | `/{betId}/stake?sessionkey={sessinoKey}`      | POST   | `betid:int ；sessionkey: string ；body: stake amount:int`     | 200 OK, 401 Unauthorized|
 | `/{betId}/highstakes`      | POST/GET   |      | 200 OK ,response body :`stake list 9002=1500,9001=800`|
 
